@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -u
+
 # hello I am bob the rebase bot!
 # use me to let others rebase your pending github prs by commenting "rebase please"
 
@@ -189,6 +191,13 @@ handle_notification() {
 	repo_url="$1"
 	comment_url="$2"
 
+	if [ "$comment_url" = null ]
+	then
+		# this can happend when we get a notification for something other than a comment
+		# such as the pr being closed/merged or reviewed
+		return
+	fi
+
 	if [ "$comment_url" = "" ]
 	then
 		wrn "Warning: comment url empty"
@@ -231,7 +240,11 @@ fetch_repo() {
 }
 
 fetch_repos() {
-	fetch_repo ChillerDragon/github-meta
+	printf '%s\n' "$ALLOWED_REMOTES" | tr ' ' '\n' | while IFS= read -r remote
+	do
+		log "fetching repo $remote ..."
+		fetch_repo "$remote"
+	done
 }
 
 fetch_repos
