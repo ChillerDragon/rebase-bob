@@ -14,6 +14,8 @@ ARG_VERBOSE="${ARG_VERBOSE:-0}"
 GH_BOT_USERNAME="${GH_BOT_USERNAME:-ChillerDragon}"
 GIT_ROOT="${GIT_ROOT:-/tmp/bob}"
 
+KNOWN_URLS_FILE=urls.txt
+
 # https://github.com/teeworlds-community/mirror-bot/issues/5
 # https://github.com/cli/cli/blob/f4dff56057efabcfa38c25b3d5220065719d2b15/pkg/cmd/root/help_topic.go#L92-L96
 # use local github cli config
@@ -202,6 +204,13 @@ rebase_pull_url() {
 handle_notification() {
 	repo_url="$1"
 	comment_url="$2"
+
+	if grep -q "$comment_url" "$KNOWN_URLS_FILE"
+	then
+		dbg "skipping known comment $comment_url"
+		return
+	fi
+	printf '%s\n' "$comment_url" >> "$KNOWN_URLS_FILE"
 
 	if [ "$comment_url" = null ]
 	then
