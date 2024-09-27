@@ -93,6 +93,14 @@ is_dirty_git() {
     return 1
 }
 
+rebase_error_msg() {
+	cat <<-'EOF'
+	Hello I am [bob](https://github.com/ChillerDragon/rebase-bob). And there was an error rebasing sorry UwU.
+	
+	If there is a bug with the bot you can comment ``!shutdown bob`` and it will stop running.
+	EOF
+}
+
 # rebase_pull_url [repo_pull_url]
 # example:
 #   rebase_pull_url https://api.github.com/repos/ChillerDragon/github-meta/pulls/7
@@ -180,9 +188,7 @@ rebase_pull_url() {
 			return
 		fi
 
-		text="Hello I am [bob](https://github.com/ChillerDragon/rebase-bob). And there was an error rebasing sorry UwU."
-
-		if ! gh issue comment "$pull_id" --body "$text"
+		if ! gh issue comment "$pull_id" --body "$(rebase_error_msg)"
 		then
 			err "Error: failed to comment"
 			exit 1
@@ -260,6 +266,10 @@ handle_notification() {
 	then
 		log "got comment requesting rebase. comment: $comment"
 		rebase_pull_url "$repo_url"
+	elif [ "$comment" = '!shutdown bob' ]
+	then
+		log "got shutdown request from $author. comment: $comment"
+		exit 0
 	else
 		log "got comment requesting no rebase. comment: $comment"
 	fi
