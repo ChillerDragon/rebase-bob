@@ -8,13 +8,14 @@ set -u
 # shellcheck disable=SC1091
 [ -f .env ] && . ./.env
 
-# SCRIPT_ROOT="$PWD"
+SCRIPT_ROOT="$PWD"
 
 ARG_VERBOSE="${ARG_VERBOSE:-0}"
 GH_BOT_USERNAME="${GH_BOT_USERNAME:-ChillerDragon}"
 GIT_ROOT="${GIT_ROOT:-/tmp/bob}"
 
-KNOWN_URLS_FILE=urls.txt
+KNOWN_URLS_FILE="$SCRIPT_ROOT/urls.txt"
+touch "$KNOWN_URLS_FILE"
 
 # https://github.com/teeworlds-community/mirror-bot/issues/5
 # https://github.com/cli/cli/blob/f4dff56057efabcfa38c25b3d5220065719d2b15/pkg/cmd/root/help_topic.go#L92-L96
@@ -226,8 +227,13 @@ handle_notification() {
 	printf '%s\n' "$comment_url" >> "$KNOWN_URLS_FILE"
 
 
-	# we do not care who commented just what
-	if ! comment="$(gh api "$comment_url" | jq -r .body)"
+	if ! comment_json="$(gh api "$comment_url")"
+	then
+		wrn "Warning: failed to fetch comment json"
+		return
+	fi
+
+	if ! comment="$(printf '%s' "$comment_json" | jq -r .body)"
 	then
 		wrn "Warning: failed to fetch comment content"
 		return
@@ -235,6 +241,18 @@ handle_notification() {
 	if [ "$comment" = "" ]
 	then
 		wrn "Warning: empty comment"
+		return
+	fi
+
+
+	if ! author="$(printf '%s' "$comment_json" | jq -r '.user.login')"
+	then
+		wrn "Warning: failed to fetch comment author"
+		return
+	fi
+	if [ "$author" = "$GH_BOT_USERNAME" ]
+	then
+		dbg "ignoring own comment: $comment"
 		return
 	fi
 
