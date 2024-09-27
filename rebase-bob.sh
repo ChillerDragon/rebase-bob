@@ -269,7 +269,7 @@ handle_notification() {
 	elif [ "$comment" = '!shutdown bob' ]
 	then
 		log "got shutdown request from $author. comment: $comment"
-		exit 0
+		exit 1
 	else
 		log "got comment requesting no rebase. comment: $comment"
 	fi
