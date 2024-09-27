@@ -165,6 +165,12 @@ rebase_pull_url() {
 			return
 		fi
 
+		if ! git rebase --abort
+		then
+			err "Error: failed to abort failed rebase"
+			return
+		fi
+
 		text="Hello I am [bob](https://github.com/ChillerDragon/rebase-bob). And there was an error rebasing sorry UwU."
 
 		if ! gh issue comment "$pull_id" --body "$text"
