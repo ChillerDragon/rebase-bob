@@ -205,13 +205,6 @@ handle_notification() {
 	repo_url="$1"
 	comment_url="$2"
 
-	if grep -q "$comment_url" "$KNOWN_URLS_FILE"
-	then
-		dbg "skipping known comment $comment_url"
-		return
-	fi
-	printf '%s\n' "$comment_url" >> "$KNOWN_URLS_FILE"
-
 	if [ "$comment_url" = null ]
 	then
 		# this can happend when we get a notification for something other than a comment
@@ -224,6 +217,14 @@ handle_notification() {
 		wrn "Warning: comment url empty"
 		return
 	fi
+
+	if grep -q "$comment_url" "$KNOWN_URLS_FILE"
+	then
+		dbg "skipping known comment $comment_url"
+		return
+	fi
+	printf '%s\n' "$comment_url" >> "$KNOWN_URLS_FILE"
+
 
 	# we do not care who commented just what
 	if ! comment="$(gh api "$comment_url" | jq -r .body)"
