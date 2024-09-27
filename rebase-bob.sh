@@ -153,6 +153,12 @@ rebase_pull_url() {
 		return
 	fi
 
+	if ! git pull
+	then
+		wrn "Warning: failed to pull"
+		return
+	fi
+
 	if ! git rebase upstream/master
 	then
 		wrn "Warning: failed to rebase master branch"
