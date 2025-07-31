@@ -279,7 +279,7 @@ fetch_repo() {
 	repo="$1"
 	gh api "repos/$repo/notifications" \
 		| jq -r '.[] | "\(.reason) \(.subject.url) \(.subject.latest_comment_url)"' \
-		| grep '^author' | cut -d' ' -f2- | while IFS= read -r notification
+		| grep '^(state_change|author)' | cut -d' ' -f2- | while IFS= read -r notification
 		do
 			log "not $notification"
 
